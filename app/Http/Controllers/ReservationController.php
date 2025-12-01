@@ -10,13 +10,16 @@ class ReservationController extends Controller
     /**
      * Display a listing of all reservations.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $reservations = Reservation::all();
-        
+        $reservations = Reservation::where('user_id', $request->user()->id)
+            ->orderByDesc('reservation_date')
+            ->orderByDesc('reservation_time')
+            ->get();
+
         return response()->json([
             'success' => true,
-            'data' => $reservations
+            'data' => $reservations,
         ]);
     }
 
@@ -30,17 +33,31 @@ class ReservationController extends Controller
             'plate_number' => 'required|string|max:20',
             'reservation_date' => 'required|date',
             'reservation_time' => 'required|date_format:H:i',
-            'parking_no' => 'required|string|max:10',
+            'parking_no' => 'required|in:A,B,C,D,E,F',
             'phone_no' => 'required|string|max:15',
         ]);
 
-        // TODO: Implement database save once migration is set up
-        // $reservation = Reservation::create($validated);
+        // Enforce capacity: max 20 reservations per parking area per date
+        $existingCount = Reservation::where('parking_no', $validated['parking_no'])
+            ->whereDate('reservation_date', $validated['reservation_date'])
+            ->count();
+
+        if ($existingCount >= 20) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Parking ' . $validated['parking_no'] . ' is full for that date (20/20 slots used).',
+            ], 422);
+        }
+
+        $reservation = Reservation::create([
+            'user_id' => $request->user()->id,
+            ...$validated,
+        ]);
 
         return response()->json([
             'success' => true,
-            'data' => $validated,
-            'message' => 'Reservation validated successfully. Database not yet implemented.'
+            'data' => $reservation,
+            'message' => 'Reservation created successfully.',
         ], 201);
     }
 
