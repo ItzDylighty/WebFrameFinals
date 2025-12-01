@@ -165,6 +165,7 @@
         <div class="form-section">
             <h1>EseePark - Parking Reservation System</h1>
             <h2>Create Reservation</h2>
+            <p style="margin-bottom:20px;color:#555;">Provide your vehicle details and preferred schedule. A parking attendant will assign the final parking slot when you arrive or when your reservation is approved.</p>
             <form id="reservationForm">
                 <div class="form-group">
                     <label for="name">Name:</label>
@@ -187,9 +188,9 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="parking_no">Parking Area:</label>
-                    <select id="parking_no" name="parking_no" required>
-                        <option value="">Select parking</option>
+                    <label for="preferred_parking_no">Preferred Parking Area (optional):</label>
+                    <select id="preferred_parking_no" name="preferred_parking_no">
+                        <option value="">No preference</option>
                         <option value="A">Parking A</option>
                         <option value="B">Parking B</option>
                         <option value="C">Parking C</option>
@@ -197,11 +198,12 @@
                         <option value="E">Parking E</option>
                         <option value="F">Parking F</option>
                     </select>
+                    <small style="color:#666;">The attendant will try to honor your preference if slots are available.</small>
                 </div>
 
                 <div class="form-group">
-                    <label for="phone_no">Phone No.:</label>
-                    <input type="tel" id="phone_no" name="phone_no" required>
+                    <label for="phone_no">Phone No. (optional):</label>
+                    <input type="tel" id="phone_no" name="phone_no">
                 </div>
 
                 <button type="submit">Submit Reservation</button>
@@ -220,7 +222,7 @@
                 plate_number: document.getElementById('plate_number').value,
                 reservation_date: document.getElementById('reservation_date').value,
                 reservation_time: document.getElementById('reservation_time').value,
-                parking_no: document.getElementById('parking_no').value,
+                preferred_parking_no: document.getElementById('preferred_parking_no').value,
                 phone_no: document.getElementById('phone_no').value
             };
 

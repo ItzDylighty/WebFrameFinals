@@ -33,25 +33,33 @@ class ReservationController extends Controller
             'plate_number' => 'required|string|max:20',
             'reservation_date' => 'required|date',
             'reservation_time' => 'required|date_format:H:i',
-            'parking_no' => 'required|in:A,B,C,D,E,F',
-            'phone_no' => 'required|string|max:15',
+            'preferred_parking_no' => 'nullable|in:A,B,C,D,E,F',
+            'phone_no' => 'nullable|string|max:20',
         ]);
 
-        // Enforce capacity: max 20 reservations per parking area per date
-        $existingCount = Reservation::where('parking_no', $validated['parking_no'])
-            ->whereDate('reservation_date', $validated['reservation_date'])
-            ->count();
+        if (! empty($validated['preferred_parking_no'])) {
+            // Enforce capacity: max 20 reservations per parking area per date
+            $existingCount = Reservation::where('parking_no', $validated['preferred_parking_no'])
+                ->whereDate('reservation_date', $validated['reservation_date'])
+                ->count();
 
-        if ($existingCount >= 20) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Parking ' . $validated['parking_no'] . ' is full for that date (20/20 slots used).',
-            ], 422);
+            if ($existingCount >= 20) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Parking ' . $validated['preferred_parking_no'] . ' is full for that date (20/20 slots used).',
+                ], 422);
+            }
         }
 
         $reservation = Reservation::create([
             'user_id' => $request->user()->id,
-            ...$validated,
+            'name' => $validated['name'],
+            'plate_number' => $validated['plate_number'],
+            'reservation_date' => $validated['reservation_date'],
+            'reservation_time' => $validated['reservation_time'],
+            'preferred_parking_no' => $validated['preferred_parking_no'] ?? null,
+            'phone_no' => $validated['phone_no'] ?? '',
+            'status' => 'pending',
         ]);
 
         return response()->json([

@@ -25,6 +25,10 @@
         .stat-card { flex: 1 1 150px; background-color: #f9f9f9; padding: 15px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .stat-label { font-size: 13px; color: #777; margin-bottom: 5px; }
         .stat-value { font-size: 20px; font-weight: bold; color: #333; }
+        .status-badge { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; text-transform: capitalize; }
+        .status-pending { background-color: #fef3c7; color: #92400e; }
+        .status-approved { background-color: #dcfce7; color: #166534; }
+        .status-rejected { background-color: #fee2e2; color: #991b1b; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 8px 10px; border-bottom: 1px solid #eee; font-size: 14px; text-align: left; }
         th { background-color: #fafafa; font-weight: bold; }
@@ -74,6 +78,9 @@
         <p class="section-title">Quick Actions</p>
         <div class="actions">
             <a href="{{ url('/reservations') }}" class="btn btn-primary">Create a Reservation</a>
+            @if (auth()->user()->is_admin)
+                <a href="{{ url('/admin/reservations') }}" class="btn btn-secondary">Admin Approval</a>
+            @endif
         </div>
 
         <p class="section-title">Reservations</p>
@@ -98,6 +105,18 @@
                     <div class="stat-label">Completed Reservations</div>
                     <div class="stat-value">{{ $stats['completed'] ?? 0 }}</div>
                 </div>
+                <div class="stat-card">
+                    <div class="stat-label">Pending</div>
+                    <div class="stat-value">{{ $statusCounts['pending'] ?? 0 }}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Approved</div>
+                    <div class="stat-value">{{ $statusCounts['approved'] ?? 0 }}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Rejected</div>
+                    <div class="stat-value">{{ $statusCounts['rejected'] ?? 0 }}</div>
+                </div>
             </div>
 
             <p class="section-title">Recent Reservations</p>
@@ -108,6 +127,7 @@
                         <th>Time</th>
                         <th>Plate No.</th>
                         <th>Parking Area</th>
+                        <th>Slot</th>
                         <th>Status</th>
                     </tr>
                 </thead>
@@ -117,14 +137,18 @@
                             <td>{{ optional($reservation->reservation_date)->format('Y-m-d') }}</td>
                             <td>{{ $reservation->reservation_time }}</td>
                             <td>{{ $reservation->plate_number }}</td>
-                            <td>{{ $reservation->parking_no }}</td>
+                            <td>{{ $reservation->parking_no ?? $reservation->preferred_parking_no ?? '—' }}</td>
                             <td>
-                                @php($date = optional($reservation->reservation_date)->format('Y-m-d'))
-                                @if ($date >= now()->toDateString())
-                                    Upcoming
+                                @if ($reservation->parkingSlot)
+                                    {{ optional($reservation->parkingSlot->area)->code }}-{{ $reservation->parkingSlot->slot_number }}
                                 @else
-                                    Completed
+                                    —
                                 @endif
+                            </td>
+                            <td>
+                                <span class="status-badge status-{{ $reservation->status }}">
+                                    {{ ucfirst($reservation->status) }}
+                                </span>
                             </td>
                         </tr>
                     @empty
@@ -145,6 +169,7 @@
                         <th>Time</th>
                         <th>Plate No.</th>
                         <th>Parking Area</th>
+                        <th>Slot</th>
                         <th>Status</th>
                     </tr>
                 </thead>
@@ -154,14 +179,18 @@
                             <td>{{ optional($reservation->reservation_date)->format('Y-m-d') }}</td>
                             <td>{{ $reservation->reservation_time }}</td>
                             <td>{{ $reservation->plate_number }}</td>
-                            <td>{{ $reservation->parking_no }}</td>
+                            <td>{{ $reservation->parking_no ?? $reservation->preferred_parking_no ?? '—' }}</td>
                             <td>
-                                @php($date = optional($reservation->reservation_date)->format('Y-m-d'))
-                                @if ($date >= now()->toDateString())
-                                    Upcoming
+                                @if ($reservation->parkingSlot)
+                                    {{ optional($reservation->parkingSlot->area)->code }}-{{ $reservation->parkingSlot->slot_number }}
                                 @else
-                                    Completed
+                                    —
                                 @endif
+                            </td>
+                            <td>
+                                <span class="status-badge status-{{ $reservation->status }}">
+                                    {{ ucfirst($reservation->status) }}
+                                </span>
                             </td>
                         </tr>
                     @empty
