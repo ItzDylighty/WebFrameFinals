@@ -63,6 +63,14 @@
         .slot-details { margin-top: 16px; background: #fff; border: 1px solid #f1f5f9; border-radius: 8px; padding: 16px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.03); }
         .slot-details h4 { margin: 0 0 8px 0; }
         .slot-details p { margin: 4px 0; color: #4b5563; }
+        .upcoming-list { margin: 6px 0 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+        .upcoming-card { border: 1px solid #f1f5f9; border-radius: 6px; padding: 8px 10px; background: #fff; display: flex; flex-direction: column; gap: 6px; }
+        .upcoming-card-today { border-color: #800000; box-shadow: 0 0 0 1px rgba(128,0,0,0.12); }
+        .upcoming-main-line { font-size: 13px; color: #111827; font-weight: 600; }
+        .upcoming-sub-line { font-size: 12px; color: #6b7280; }
+        .upcoming-footer { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; }
+        .upcoming-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+        .upcoming-actions .btn { padding: 4px 8px; font-size: 12px; }
         .slot-actions { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 10px; }
         .slot-legend { margin-top: 12px; display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: #555; }
         .legend-pill { display: inline-flex; align-items: center; gap: 6px; }
@@ -239,6 +247,13 @@
             return value ?? '—';
         }
 
+        function formatDate(value) {
+            if (!value) return '—';
+            const s = value.toString();
+            // Handles both '2025-12-18' and '2025-12-18T00:00:00.000000Z'
+            return s.length >= 10 ? s.slice(0, 10) : s;
+        }
+
         async function loadData() {
             await Promise.all([loadReservations(), loadSlots()]);
         }
@@ -307,7 +322,7 @@
                         <div style="font-size:12px;color:#6b7280;">${user?.email || '—'}</div>
                     </td>
                     <td data-label="Plate">${format(reservation.plate_number)}</td>
-                    <td data-label="Date">${format(reservation.reservation_date)}</td>
+                    <td data-label="Date">${formatDate(reservation.reservation_date)}</td>
                     <td data-label="Time">${format(reservation.reservation_time)}</td>
                     <td data-label="Preferred">${format(reservation.preferred_parking_no) || 'Any'}</td>
                     <td data-label="Slot">${formatAssignedSlot(reservation)}</td>
@@ -331,7 +346,7 @@
                         <div style="font-size:12px;color:#6b7280;">${user?.email || '—'}</div>
                     </td>
                     <td data-label="Plate">${format(reservation.plate_number)}</td>
-                    <td data-label="Date">${format(reservation.reservation_date)}</td>
+                    <td data-label="Date">${formatDate(reservation.reservation_date)}</td>
                     <td data-label="Time">${format(reservation.reservation_time)}</td>
                     <td data-label="Slot">${formatAssignedSlot(reservation)}</td>
                     <td data-label="Status">${badge(reservation.status)}</td>
@@ -427,19 +442,33 @@
             const upcoming = Array.isArray(slotInfo.upcomingReservations)
                 ? slotInfo.upcomingReservations
                 : (Array.isArray(slotInfo.upcoming_reservations) ? slotInfo.upcoming_reservations : []);
+            const dateToday = new Date().toISOString().slice(0,10);
             const upcomingList = upcoming.length
                 ? `<div style="margin-top:10px;">
                         <strong>Upcoming reservations for this slot</strong>
-                        <ul style="margin:6px 0 0 18px; padding:0;">
+                        <div class="upcoming-list">
                             ${upcoming.map(r => {
-                                const d = (r.reservation_date ?? '').toString();
-                                const t = (r.reservation_time ?? '').toString();
+                                const rawDate = (r.reservation_date ?? '').toString();
+                                const d = formatDate(rawDate);
                                 const nm = r.name || (r.user && r.user.name) || '—';
                                 const pl = r.plate_number || '—';
-                                const isToday = (new Date().toISOString().slice(0,10) === (d || '').slice(0,10));
-                                return `<li style="margin:4px 0;${isToday ? 'font-weight:600;' : ''}">#${r.id} — ${nm} (${pl}) — ${d} ${t} <span class="badge-light" style="margin-left:6px;">${r.status}</span></li>`;
+                                const isToday = (dateToday === rawDate.slice(0,10));
+                                const cardClass = isToday ? 'upcoming-card upcoming-card-today' : 'upcoming-card';
+                                const statusLabel = r.status || 'approved';
+                                return `
+                                    <div class="${cardClass}">
+                                        <div class="upcoming-main-line">#${r.id} — ${nm} (${pl})</div>
+                                        <div class="upcoming-sub-line">${d}</div>
+                                        <div class="upcoming-footer">
+                                            ${badge(statusLabel)}
+                                            <div class="upcoming-actions">
+                                                <button type="button" class="btn btn-reject" onclick="rejectReservation(${r.id})">Cancel</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
                             }).join('')}
-                        </ul>
+                        </div>
                    </div>`
                 : '';
 
@@ -519,7 +548,7 @@
                     throw new Error(data.message || 'Unable to reject reservation.');
                 }
 
-                await loadReservations();
+                await loadData();
             } catch (error) {
                 alert(error.message);
             } finally {

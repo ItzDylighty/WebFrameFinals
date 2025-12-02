@@ -60,6 +60,19 @@
 
     <main class="main">
         <div class="container">
+            <a href="{{ url('/admin/reservations') }}" 
+                class="btn"
+                style="
+                    background-color:#800000; 
+                    color:white; 
+                    border:none;
+                "
+                onmouseover="this.style.backgroundColor='#990000'"
+                onmouseout="this.style.backgroundColor='#800000'"
+                >
+                    Back to Admin Dashboard
+            </a>
+
             <h1>Walk-In Vehicle Entry</h1>
             <p class="description">Use this form when a vehicle arrives without a prior reservation. Choose an available slot, collect driver details, and check them in.</p>
 
