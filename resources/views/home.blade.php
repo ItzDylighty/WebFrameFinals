@@ -16,8 +16,8 @@
         .section-title { margin-top: 10px; margin-bottom: 10px; font-weight: bold; }
         .actions { display: flex; gap: 10px; flex-wrap: wrap; }
         .btn { display: inline-block; padding: 10px 20px; border-radius: 3px; border: none; cursor: pointer; font-size: 14px; text-decoration: none; text-align: center; }
-        .btn-primary { background-color: #4CAF50; color: #fff; }
-        .btn-primary:hover { background-color: #45a049; }
+        .btn-primary { background-color: #800000; color: #fff; }
+        .btn-primary:hover { background-color: #a00000; }
         .btn-secondary { background-color: #800000; color: #fff; }
         .btn-secondary:hover { background-color: #a00000; }
         form { margin: 0; }

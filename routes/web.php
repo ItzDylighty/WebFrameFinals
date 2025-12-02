@@ -5,6 +5,7 @@ use App\Http\Controllers\AdminReservationController;
 use App\Http\Controllers\AdminSlotController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AnalyticsController;
 use App\Models\Reservation;
 
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
@@ -33,13 +34,7 @@ Route::middleware('auth')->group(function () {
                 && $reservationDate >= $today;
         })->count();
 
-        $completedCount = $allReservations->filter(function ($reservation) use ($today) {
-            $reservationDate = optional($reservation->reservation_date)->format('Y-m-d');
-
-            return $reservation->status === 'approved'
-                && $reservationDate !== null
-                && $reservationDate < $today;
-        })->count();
+        $completedCount = $allReservations->where('status', 'completed')->count();
 
         $statusCounts = [
             'pending' => $allReservations->where('status', 'pending')->count(),
@@ -82,6 +77,10 @@ Route::middleware(['auth', 'admin'])->group(function () {
         return view('admin.walkin');
     })->name('admin.walkin');
 
+    Route::get('/admin/analytics', function () {
+        return view('admin.analytics');
+    })->name('admin.analytics');
+
     Route::prefix('admin/api/reservations')->group(function () {
         Route::get('/', [AdminReservationController::class, 'index']);
         Route::post('/{reservation}/reject', [AdminReservationController::class, 'reject']);
@@ -95,6 +94,13 @@ Route::middleware(['auth', 'admin'])->group(function () {
             Route::post('/{slot}/walk-in', [AdminSlotController::class, 'walkIn']);
             Route::post('/{slot}/check-in', [AdminSlotController::class, 'checkIn']);
             Route::post('/{slot}/vacate', [AdminSlotController::class, 'vacate']);
+        });
+
+        Route::prefix('analytics')->group(function () {
+            Route::get('/overview', [AnalyticsController::class, 'overview']);
+            Route::get('/reservations-by-day', [AnalyticsController::class, 'reservationsByDay']);
+            Route::get('/occupancy-by-hour', [AnalyticsController::class, 'occupancyByHour']);
+            Route::get('/utilization-by-area', [AnalyticsController::class, 'utilizationByArea']);
         });
     });
 });

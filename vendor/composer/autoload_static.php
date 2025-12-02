@@ -529,9 +529,14 @@ class ComposerStaticInitc514d8f7b9fc5970bdd94287905ef584
     );
 
     public static $classMap = array (
+        'App\\Http\\Controllers\\AdminReservationController' => __DIR__ . '/../..' . '/app/Http/Controllers/AdminReservationController.php',
+        'App\\Http\\Controllers\\AdminSlotController' => __DIR__ . '/../..' . '/app/Http/Controllers/AdminSlotController.php',
         'App\\Http\\Controllers\\AuthController' => __DIR__ . '/../..' . '/app/Http/Controllers/AuthController.php',
         'App\\Http\\Controllers\\Controller' => __DIR__ . '/../..' . '/app/Http/Controllers/Controller.php',
         'App\\Http\\Controllers\\ReservationController' => __DIR__ . '/../..' . '/app/Http/Controllers/ReservationController.php',
+        'App\\Http\\Middleware\\EnsureUserIsAdmin' => __DIR__ . '/../..' . '/app/Http/Middleware/EnsureUserIsAdmin.php',
+        'App\\Models\\ParkingArea' => __DIR__ . '/../..' . '/app/Models/ParkingArea.php',
+        'App\\Models\\ParkingSlot' => __DIR__ . '/../..' . '/app/Models/ParkingSlot.php',
         'App\\Models\\Reservation' => __DIR__ . '/../..' . '/app/Models/Reservation.php',
         'App\\Models\\User' => __DIR__ . '/../..' . '/app/Models/User.php',
         'App\\Providers\\AppServiceProvider' => __DIR__ . '/../..' . '/app/Providers/AppServiceProvider.php',

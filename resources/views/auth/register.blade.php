@@ -6,18 +6,36 @@
     <title>Register - EseePark</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f5f5f5; padding: 20px; }
-        .container { max-width: 400px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        *, *::before, *::after { box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background-color: #f5f5f5; padding: 20px; margin: 0; }
+        .container { max-width: 400px; width: 100%; margin: 0 auto; background: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         h1 { text-align: center; margin-bottom: 20px; }
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; font-weight: bold; }
         input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 3px; }
-        button { background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 3px; cursor: pointer; width: 100%; }
-        button:hover { background-color: #45a049; }
-        .error { color: #c0392b; margin-bottom: 10px; font-size: 14px; }
+        input:focus { outline: none; border-color: #800000; box-shadow: 0 0 4px rgba(128,0,0,0.3); }
+        button { background-color: #800000; color: white; padding: 10px 20px; border: none; border-radius: 3px; cursor: pointer; width: 100%; }
+        button:hover { background-color: #a00000; }
+        .error { color: #c0392b; margin-bottom: 10px; font-size: 14px; word-break: break-word; }
         .link { margin-top: 10px; text-align: center; font-size: 14px; }
-        a { color: #4CAF50; text-decoration: none; }
+        a { color: #800000; text-decoration: none; }
         a:hover { text-decoration: underline; }
+
+        /* Small screens */
+        @media (max-width: 480px) {
+            body { padding: 10px; }
+            .container { padding: 16px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+            h1 { font-size: 22px; }
+            label { font-size: 14px; }
+            input { padding: 12px; }
+            button { padding: 12px 16px; }
+            .link { font-size: 13px; }
+        }
+
+        /* Larger desktops - slight width breathing room without visual change */
+        @media (min-width: 1024px) {
+            .container { max-width: 420px; }
+        }
     </style>
 </head>
 <body>

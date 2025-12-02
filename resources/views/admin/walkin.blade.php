@@ -21,11 +21,13 @@
         .form-group { display: flex; flex-direction: column; }
         label { font-weight: 600; margin-bottom: 6px; }
         input, select { padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
-        input:focus, select:focus { outline: none; border-color: #4CAF50; box-shadow: 0 0 4px rgba(76, 175, 80, 0.3); }
+        input:focus, select:focus { outline: none; border-color: #800000; box-shadow: 0 0 4px rgba(128, 0, 0, 0.3); }
         .actions { margin-top: 20px; display: flex; gap: 12px; }
         .btn { border: none; border-radius: 4px; padding: 10px 18px; font-size: 14px; cursor: pointer; }
-        .btn-primary { background-color: #22c55e; color: #fff; }
+        .btn-primary { background-color: #800000; color: #fff; }
+        .btn-primary:hover { background-color: #a00000; }
         .btn-secondary { background-color: #ddd; }
+        .btn-secondary:hover { background-color: #ccc; }
         .status-message { margin-top: 16px; font-weight: 600; }
         .slot-grid { margin-top: 30px; }
         .slot-grid-title { font-size: 18px; font-weight: 600; margin-bottom: 12px; }
@@ -48,6 +50,7 @@
         <nav class="app-nav">
             <a href="{{ url('/admin/reservations') }}" class="nav-link">Admin Dashboard</a>
             <a href="{{ url('/admin/walk-in') }}" class="nav-link nav-link-active">Walk-In Entry</a>
+            <a href="{{ url('/admin/analytics') }}" class="nav-link">Analytics</a>
             <form method="POST" action="{{ url('/logout') }}">
                 @csrf
                 <button type="submit" class="nav-button">Logout</button>

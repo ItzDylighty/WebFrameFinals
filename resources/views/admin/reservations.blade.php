@@ -40,10 +40,10 @@
 
         .actions { display: flex; gap: 8px; }
         .btn { border: none; border-radius: 4px; padding: 8px 12px; font-size: 13px; cursor: pointer; transition: transform 0.1s ease, opacity 0.1s ease; }
-        .btn-approve { background-color: #22c55e; color: #fff; }
-        .btn-approve:hover { background-color: #16a34a; }
-        .btn-reject { background-color: #ef4444; color: #fff; }
-        .btn-reject:hover { background-color: #dc2626; }
+        .btn-approve { background-color: #800000; color: #fff; }
+        .btn-approve:hover { background-color: #a00000; }
+        .btn-reject { background-color: #800000; color: #fff; }
+        .btn-reject:hover { background-color: #a00000; }
         .btn:disabled { opacity: 0.7; cursor: not-allowed; }
 
         .badge-light { padding: 4px 8px; border-radius: 999px; background: #f1f5f9; color: #475569; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; }
@@ -58,7 +58,7 @@
         .slot-btn.status-vacant { background-color: #dcfce7; color: #14532d; }
         .slot-btn.status-reserved { background-color: #fef3c7; color: #92400e; }
         .slot-btn.status-occupied { background-color: #fee2e2; color: #991b1b; }
-        .slot-btn.slot-selected { outline: 3px solid #2563eb; }
+        .slot-btn.slot-selected { outline: 3px solid #800000; }
         .slot-btn:disabled { opacity: 0.7; cursor: not-allowed; }
         .slot-details { margin-top: 16px; background: #fff; border: 1px solid #f1f5f9; border-radius: 8px; padding: 16px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.03); }
         .slot-details h4 { margin: 0 0 8px 0; }
@@ -72,10 +72,10 @@
         .legend-dot.status-occupied { background-color: #fecaca; }
 
         .actions-column { display: flex; flex-direction: column; gap: 6px; }
-        .btn-assign { background-color: #2563eb; color: #fff; }
-        .btn-assign:hover { background-color: #1d4ed8; }
-        .btn-secondary-outline { background: transparent; border: 1px solid #cbd5f5; color: #1e40af; }
-        .btn-secondary-outline:hover { background-color: #e0e7ff; }
+        .btn-assign { background-color: #800000; color: #fff; }
+        .btn-assign:hover { background-color: #a00000; }
+        .btn-secondary-outline { background: transparent; border: 1px solid rgba(128,0,0,0.4); color: #800000; }
+        .btn-secondary-outline:hover { background-color: #f8e6e6; }
 
         @media (max-width: 1024px) {
             .slot-list { grid-template-columns: repeat(auto-fill, minmax(36px, 1fr)); }
@@ -98,6 +98,7 @@
             <a href="{{ url('/') }}" class="nav-link">User Dashboard</a>
             <a href="{{ url('/admin/reservations') }}" class="nav-link nav-link-active">Admin Reservations</a>
             <a href="{{ url('/admin/walk-in') }}" class="nav-link">Walk-In Entry</a>
+            <a href="{{ url('/admin/analytics') }}" class="nav-link">Analytics</a>
             <form method="POST" action="{{ url('/logout') }}">
                 @csrf
                 <button type="submit" class="nav-button">Logout</button>
@@ -420,8 +421,27 @@
 
             const reservation = slotInfo.active_reservation;
             const reservationSummary = reservation
-                ? `<p><strong>Reservation:</strong> #${reservation.id} — ${reservation.name} (${reservation.plate_number})</p>`
-                : '<p><strong>Reservation:</strong> None</p>';
+                ? `<p><strong>Reservation (today):</strong> #${reservation.id} — ${reservation.name} (${reservation.plate_number})</p>`
+                : '<p><strong>Reservation (today):</strong> None</p>';
+
+            const upcoming = Array.isArray(slotInfo.upcomingReservations)
+                ? slotInfo.upcomingReservations
+                : (Array.isArray(slotInfo.upcoming_reservations) ? slotInfo.upcoming_reservations : []);
+            const upcomingList = upcoming.length
+                ? `<div style="margin-top:10px;">
+                        <strong>Upcoming reservations for this slot</strong>
+                        <ul style="margin:6px 0 0 18px; padding:0;">
+                            ${upcoming.map(r => {
+                                const d = (r.reservation_date ?? '').toString();
+                                const t = (r.reservation_time ?? '').toString();
+                                const nm = r.name || (r.user && r.user.name) || '—';
+                                const pl = r.plate_number || '—';
+                                const isToday = (new Date().toISOString().slice(0,10) === (d || '').slice(0,10));
+                                return `<li style="margin:4px 0;${isToday ? 'font-weight:600;' : ''}">#${r.id} — ${nm} (${pl}) — ${d} ${t} <span class="badge-light" style="margin-left:6px;">${r.status}</span></li>`;
+                            }).join('')}
+                        </ul>
+                   </div>`
+                : '';
 
             let actionButtons = '';
             if (slotInfo.status === 'vacant') {
@@ -443,6 +463,7 @@
                 <h4>Slot ${slotInfo.area.code}-${slotInfo.slot_number}</h4>
                 <p><strong>Status:</strong> ${slotInfo.status.charAt(0).toUpperCase() + slotInfo.status.slice(1)}</p>
                 ${reservationSummary}
+                ${upcomingList}
                 <div class="slot-actions">
                     ${actionButtons || '<span style="color:#6b7280;">No actions available.</span>'}
                 </div>
@@ -452,12 +473,6 @@
         async function assignReservation(reservationId, button) {
             if (!selectedSlotId) {
                 alert('Select a slot from the map before assigning.');
-                return;
-            }
-
-            const slotInfo = findSlotById(selectedSlotId);
-            if (!slotInfo || slotInfo.status !== 'vacant') {
-                alert('Selected slot is not vacant. Please choose a vacant slot.');
                 return;
             }
 

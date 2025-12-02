@@ -15,10 +15,50 @@ class AdminSlotController extends Controller
 {
     public function index()
     {
+        $today = now()->toDateString();
+
         $areas = ParkingArea::with(['slots' => function ($query) {
             $query->orderBy('slot_number')
-                ->with(['activeReservation.user']);
+                ->with(['activeReservation.user', 'area']);
         }])->orderBy('code')->get();
+
+        // Compute UI status per slot scoped to TODAY so future reservations don't block current usage
+        foreach ($areas as $area) {
+            foreach ($area->slots as $slot) {
+                // Preserve occupied state from DB (physical presence wins)
+                if ($slot->status === 'occupied') {
+                    continue;
+                }
+
+                $hasApprovedToday = Reservation::where('parking_slot_id', $slot->id)
+                    ->whereDate('reservation_date', $today)
+                    ->where('status', 'approved')
+                    ->whereNull('checked_out_at')
+                    ->exists();
+
+                // Override status just for the response (do not persist)
+                $slot->status = $hasApprovedToday ? 'reserved' : 'vacant';
+
+                // Also override exposed activeReservation to today's reservation (for UI details panel)
+                $todaysReservation = Reservation::with('user')
+                    ->where('parking_slot_id', $slot->id)
+                    ->whereDate('reservation_date', $today)
+                    ->whereNull('checked_out_at')
+                    ->latest()
+                    ->first();
+                $slot->setRelation('activeReservation', $todaysReservation);
+
+                // Also provide a list of upcoming reservations for this slot (today and future), approved only
+                $futureReservations = Reservation::with('user')
+                    ->where('parking_slot_id', $slot->id)
+                    ->whereDate('reservation_date', '>=', $today)
+                    ->where('status', 'approved')
+                    ->orderBy('reservation_date')
+                    ->orderBy('reservation_time')
+                    ->get();
+                $slot->setRelation('upcomingReservations', $futureReservations);
+            }
+        }
 
         return response()->json([
             'success' => true,
@@ -39,8 +79,17 @@ class AdminSlotController extends Controller
         return DB::transaction(function () use ($reservation, $data) {
             $slot = ParkingSlot::lockForUpdate()->with('area')->findOrFail($data['parking_slot_id']);
 
-            if ($slot->status !== 'vacant') {
-                abort(422, 'Slot is not available.');
+            // Current physical status (e.g., occupied today) does not block assigning for a different date.
+            // We only guard against double-booking on the same reservation date below.
+
+            // Prevent double-booking: the slot cannot be assigned to more than one reservation on the same date
+            $existsSameDay = Reservation::where('parking_slot_id', $slot->id)
+                ->whereDate('reservation_date', optional($reservation->reservation_date)->format('Y-m-d'))
+                ->where('status', 'approved')
+                ->exists();
+
+            if ($existsSameDay) {
+                abort(422, 'Slot already allocated for that date. Choose a different slot.');
             }
 
             $reservation->update([
@@ -48,8 +97,6 @@ class AdminSlotController extends Controller
                 'parking_no' => $slot->area->code,
                 'status' => 'approved',
             ]);
-
-            $slot->update(['status' => 'reserved']);
 
             return response()->json([
                 'success' => true,

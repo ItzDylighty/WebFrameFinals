@@ -59,11 +59,11 @@
         }
         input:focus, textarea:focus, select:focus {
             outline: none;
-            border-color: #4CAF50;
-            box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+            border-color: #800000;
+            box-shadow: 0 0 5px rgba(128, 0, 0, 0.3);
         }
         button {
-            background-color: #4CAF50;
+            background-color: #800000;
             color: white;
             padding: 10px 20px;
             border: none;
@@ -72,7 +72,7 @@
             font-size: 14px;
         }
         button:hover {
-            background-color: #45a049;
+            background-color: #a00000;
         }
         .top-bar {
             display: flex;
